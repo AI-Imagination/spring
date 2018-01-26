@@ -21,6 +21,7 @@ include(external/gflags)    # download, build, install gflags
 include(external/glog)      # download, build, install glog
 include(external/gtest)     # download, build, install gtest
 
+option(WITH_TESTING     "Compile VisualDL with unit testing"        ON)
 
 add_executable(spring main.cpp lexer.h test_lexer.cpp lexer.cpp)
 target_link_libraries(spring gtest glog)

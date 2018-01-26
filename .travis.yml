@@ -1,0 +1,25 @@
+language: cpp
+cache:
+  - ccache
+sudo: required
+dist: trusty
+
+os:
+  - linux
+
+addons:
+  apt:
+    packages:
+      - gcc-4.8
+      - g++-4.8
+      - git
+      - clang-format-3.8
+      - ccache
+
+script:
+  /bin/bash ./tests.sh
+
+notifications:
+  email:
+    on_success: change
+    on_failure: always

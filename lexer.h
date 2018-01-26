@@ -5,30 +5,89 @@
 #ifndef SPRING_LEXER_H
 #define SPRING_LEXER_H
 
+#include <glog/logging.h>
 #include <regex>
 #include <string>
 #include <vector>
 
 namespace spring {
+
+const int kNumTypes = 9;
+
+// some helper macro to simplify operation on Token
+#define _T(type__) ::spring::Token::Type::type__
+#define _T_NAME(type__) ::spring::Token::typenames[_T(type__)]
+
 /*
  * Token is the basic unit of parser.
  */
 struct Token {
-  enum Type { SPACE = 0, COMMA, DOT, NAME, INT, FLOAT, STRING, COMMENT };
+  enum Type {
+    SPACE = 0,
+    STRING,
+    NAME,
+    FLOAT,
+    INT,
+    COMMENT,
+    DOT,
+    EQ,
+    COMMA,
+    ERROR,
+    EOB
+  };
 
   Type type;
   std::string text;
 
-  explicit Token(Type type) : type(type) {}
-  Token(Type type, char c) : type(type), text(std::to_string(c)) {}
-  Token(Type type, std::string &&text) : type(type), text(std::move(text)) {}
+  explicit Token(Type type) : type(type) { InitTypes(); }
+  Token(Type type, char c) : type(type), text(std::to_string(c)) {
+    InitTypes();
+  }
+  Token(Type type, std::string &&text) : type(type), text(std::move(text)) {
+    InitTypes();
+  }
+
+  const std::string type_name() const { return typenames[type]; }
 
   std::string tostring() const {
-    return "<Token " + std::to_string(type) + ":" + text + ">";
+    return "<Token " + type_name() + ":" + text + ">";
   }
-};
 
-#define _T(type__) ::spring::Token::Type::type__
+  static const std::regex &rule(Type type) {
+    InitTypes();
+    return rules[type];
+  }
+
+private:
+  static void InitTypes() {
+    if (inited)
+      return;
+
+#define REGEX(type__, rule__)                                                  \
+  rules[_T(type__)] = std::regex(rule__);                                      \
+  typenames[_T(type__)] = #type__;
+
+    rules.resize(kNumTypes);
+    typenames.resize(kNumTypes);
+
+    REGEX(COMMA, ",");
+    REGEX(DOT, "[.]");
+    REGEX(NAME, "[a-zA-Z_]+[a-zA-Z_0-9]*");
+    REGEX(INT, "[a-zA-Z_]+[a-zA-Z_0-9]*");
+    REGEX(FLOAT, "[+-]?[0-9]+[.][0-9]+");
+    REGEX(STRING, "\".*\"");
+    REGEX(COMMENT, "#.*");
+    REGEX(EQ, "=")
+    REGEX(SPACE, "[ \t\r]+");
+#undef REGEX
+    inited = true;
+  }
+
+private:
+  static std::vector<std::string> typenames;
+  static std::vector<std::regex> rules;
+  static bool inited;
+};
 
 static const char kEOF = '\0';
 
@@ -61,27 +120,21 @@ class TokenStream {
 public:
   explicit TokenStream(const std::string &buffer) : buffer_(buffer) {}
 
-  static const std::vector<std::regex>& rules() {
-    static std::vector<std::regex> rules(8);
-// TODO call once
-#define REGEX(type__, rule__) rules[Token::Type::type__] = std::regex(rule__);
-    REGEX(COMMA, ",");
-    REGEX(DOT, ".");
-    REGEX(NAME, "^[a-zA-Z_]+[a-zA-Z_0-9]*$");
-    REGEX(INT, "^[a-zA-Z_]+[a-zA-Z_0-9]*$");
-    REGEX(FLOAT, "^[+-]?[0-9]+[.][0-9]+$");
-    REGEX(STRING, "^\".*\"$");
-    REGEX(COMMENT, "^#.*$");
-    REGEX(SPACE, "\s*");
-#undef REGEX
-    return rules;
-  }
-
   Token NextToken() {
     IgnoreSpace();
-    for (auto t :
-         std::vector<Token::Type>({Token::Type::COMMENT, Token::Type::DOT})) {
+    if (cursor_ >= buffer_.size())
+      return Token(_T(EOB), "");
+    std::smatch match;
+    // TODO improve the performance by memo
+    for (int type = 1; type < kNumTypes; type++) {
+      if (std::regex_search(buffer_.substr(cursor_), match,
+                            Token::rule(Token::Type(type))) &&
+          match.position(0) == 0) {
+        cursor_ += match.str().size();
+        return Token(Token::Type(type), match.str());
+      }
     }
+    return Token(_T(ERROR), "");
   }
 
   char PeekChar() {
@@ -101,7 +154,7 @@ public:
         cursor_++;
         break;
       default:
-        break;
+        return;
       }
     }
   }

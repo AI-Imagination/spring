@@ -64,7 +64,7 @@ private:
       return;
 
 #define REGEX(type__, rule__)                                                  \
-  rules[_T(type__)] = std::regex(rule__);                                      \
+  rules[_T(type__)] = std::regex(rule__, std::regex_constants::extended);      \
   typenames[_T(type__)] = #type__;
 
     rules.resize(kNumTypes);

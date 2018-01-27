@@ -10,8 +10,7 @@ os:
 addons:
   apt:
     packages:
-      - g++-4.9.2
-      - gcc-4.9.2
+      - gcc-5
       - git
       - ccache
 

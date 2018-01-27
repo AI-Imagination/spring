@@ -19,7 +19,7 @@ option(WITH_TESTING     "Compile VisualDL with unit testing"        ON)
 set(THIRD_PARTY_PATH "${CMAKE_BINARY_DIR}/third_party" CACHE STRING
         "A path setting third party libraries download & build directories.")
 
-include(external/gflags)    # download, build, install gflags
+#include(external/gflags)    # download, build, install gflags
 include(external/glog)      # download, build, install glog
 include(external/gtest)     # download, build, install gtest
 

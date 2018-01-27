@@ -1,0 +1,29 @@
+language: cpp
+cache:
+  - ccache
+sudo: required
+dist: trusty
+script:
+  - gcc-5 --version 
+  - g++-5 --version 
+
+os:
+  - linux
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-5
+      - g++-5
+      - git
+      - ccache
+
+script:
+  /bin/bash ./tests.sh
+
+notifications:
+  email:
+    on_success: change
+    on_failure: always

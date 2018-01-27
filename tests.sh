@@ -3,6 +3,6 @@ set -ex
 
 mkdir -p build
 cd build
-cmake ..
+CXX=g++-5 CC=gcc-5 cmake ..
 make
 ./spring

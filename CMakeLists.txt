@@ -11,7 +11,7 @@ endif(CCACHE_FOUND)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "-fPIC")
+set(CMAKE_CXX_FLAGS "-fPIC -lpthread")
 
 
 option(WITH_TESTING     "Compile VisualDL with unit testing"        ON)

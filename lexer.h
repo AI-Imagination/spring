@@ -127,7 +127,8 @@ public:
     std::smatch match;
     // TODO improve the performance by memo
     for (int type = 1; type < kNumTypes; type++) {
-      if (std::regex_search(buffer_.substr(cursor_), match,
+      auto tmp = buffer_.substr(cursor_);
+      if (std::regex_search(tmp, match,
                             Token::rule(Token::Type(type))) &&
           match.position(0) == 0) {
         cursor_ += match.str().size();

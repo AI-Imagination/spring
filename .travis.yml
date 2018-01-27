@@ -10,8 +10,7 @@ os:
 addons:
   apt:
     packages:
-      - gcc-4.8
-      - g++-4.8
+      - g++-5.4
       - git
       - clang-format-3.8
       - ccache

@@ -2,8 +2,8 @@
 
 namespace spring {
 
-std::vector<std::string> Token::typenames;
-std::vector<std::regex> Token::rules;
+std::vector<std::string> Token::typenames_;
+std::vector<std::regex> Token::rules_;
 bool Token::inited{false};
 
 void Token::InitTypes() {
@@ -11,18 +11,18 @@ void Token::InitTypes() {
     return;
 
 #define REGEX(type__, rule__)                                                  \
-  rules[static_cast<int>(_T(type__))] =                                        \
+  rules_[static_cast<int>(_T(type__))] =                                       \
       std::regex(rule__, std::regex_constants::extended);                      \
-  typenames[static_cast<int>(_T(type__))] = #type__;
+  typenames_[static_cast<int>(_T(type__))] = #type__;
 
-  rules.resize(Token::kNumTypes);
-  typenames.resize(Token::kNumTypes);
+  rules_.resize(Token::kNumTypes);
+  typenames_.resize(Token::kNumTypes);
 
   REGEX(SPACE, "[ \t\r]+");
   REGEX(NAME, "[a-zA-Z_]+[a-zA-Z_0-9]*");
   REGEX(STRING, R"abc(".*")abc");
   REGEX(FLOAT, "[+-]?[0-9]+[.][0-9]+");
-  REGEX(INT, "[a-zA-Z_]+[a-zA-Z_0-9]*");
+  REGEX(INT, "[0-9]+");
 
   REGEX(DOT, "[.]");
 
@@ -54,11 +54,12 @@ Token TokenStream::NextToken() {
     auto tmp = buffer_.substr(cursor_);
     if (std::regex_search(tmp, match, Token::rule(Token::Type(type))) &&
         match.position(0) == 0) {
+      Token t(Token::Type(type), match.str(), cursor_);
       cursor_ += match.str().size();
-      return Token(Token::Type(type), match.str());
+      return t;
     }
   }
-  return Token(_T(ERROR), "");
+  return Token(_T(ERROR), "parsing error: " + buffer_.substr(cursor_), cursor_);
 }
 
 void TokenStream::IgnoreSpace() {

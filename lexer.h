@@ -53,34 +53,39 @@ struct Token {
 
   Type type;
   std::string text;
+  size_t pos;
 
-  explicit Token(Type type) : type(type) { InitTypes(); }
-  Token(Type type, char c) : type(type), text(std::to_string(c)) {
-    InitTypes();
-  }
-  Token(Type type, std::string &&text) : type(type), text(std::move(text)) {
-    InitTypes();
-  }
+  explicit Token(Type type) : type(type) {}
+  Token(Type type, char c) : type(type), text(std::to_string(c)) {}
+  Token(Type type, std::string &&text) : type(type), text(std::move(text)) {}
+  Token(Type type, std::string &&text, size_t pos)
+      : type(type), text(std::move(text)), pos(pos) {}
 
   const std::string type_name() const {
-    return typenames[static_cast<int>(type)];
+    InitTypes();
+    return typenames_[static_cast<int>(type)];
   }
 
   std::string tostring() const {
-    return "<Token " + type_name() + ":" + text + ">";
+    return "<Token " + type_name() + ":" + text +
+           " pos:" + std::to_string(pos) + ">";
   }
 
   static const std::regex &rule(Type type) {
+    return rules()[static_cast<int>(type)];
+  }
+
+  static const std::vector<std::regex> &rules() {
     InitTypes();
-    return rules[static_cast<int>(type)];
+    return rules_;
   }
 
 private:
   static void InitTypes();
 
 private:
-  static std::vector<std::string> typenames;
-  static std::vector<std::regex> rules;
+  static std::vector<std::string> typenames_;
+  static std::vector<std::regex> rules_;
   static bool inited;
 };
 

@@ -65,7 +65,9 @@ TEST(lexer, NextToken1) {
   auto token = ss.NextToken();
 
   int offset = 0;
-  while (token.type != _T(ERROR) && token.type != _T(EOB)) {
+  while (token.type != _T(EOB)) {
+    LOG(INFO) << token.tostring();
+    ASSERT_TRUE(token.type != _T(ERROR));
     EXPECT_EQ(token.type, types[offset++]);
     token = ss.NextToken();
   }

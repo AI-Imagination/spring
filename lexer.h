@@ -12,8 +12,6 @@
 
 namespace spring {
 
-const int kNumTypes = 9;
-
 // some helper macro to simplify operation on Token
 #define _T(type__) ::spring::Token::Type::type__
 #define _T_NAME(type__) ::spring::Token::typenames[_T(type__)]
@@ -22,19 +20,36 @@ const int kNumTypes = 9;
  * Token is the basic unit of parser.
  */
 struct Token {
-  enum Type {
+
+  enum class Type {
     SPACE = 0,
-    STRING,
-    NAME,
-    FLOAT,
-    INT,
-    COMMENT,
-    DOT,
-    EQ,
-    COMMA,
+    NAME, // _ab, ab23
+    // value
+    STRING, // "xxx"
+    FLOAT,  // 1.23
+    INT,    // 123
+    // single operator
+    DOT, // .
+    // binary operator
+    EQ,    // =
+    GT,    // >
+    GE,    // >=
+    LT,    // <
+    LE,    // <=
+    ADD,   // +
+    MINUS, // -
+    MUL,   // *
+    DIV,   // /
+    // syntax sugger
+    LP,      // left parenthese
+    RP,      // right parenthese
+    COMMENT, // #...
+    COMMA,   // ,
     ERROR,
     EOB
   };
+
+  static constexpr int kNumTypes = int(Type::COMMA) - int(Type::SPACE) + 1;
 
   Type type;
   std::string text;
@@ -47,7 +62,9 @@ struct Token {
     InitTypes();
   }
 
-  const std::string type_name() const { return typenames[type]; }
+  const std::string type_name() const {
+    return typenames[static_cast<int>(type)];
+  }
 
   std::string tostring() const {
     return "<Token " + type_name() + ":" + text + ">";
@@ -55,33 +72,11 @@ struct Token {
 
   static const std::regex &rule(Type type) {
     InitTypes();
-    return rules[type];
+    return rules[static_cast<int>(type)];
   }
 
 private:
-  static void InitTypes() {
-    if (inited)
-      return;
-
-#define REGEX(type__, rule__)                                                  \
-  rules[_T(type__)] = std::regex(rule__, std::regex_constants::extended);      \
-  typenames[_T(type__)] = #type__;
-
-    rules.resize(kNumTypes);
-    typenames.resize(kNumTypes);
-
-    REGEX(COMMA, ",");
-    REGEX(DOT, "[.]");
-    REGEX(NAME, "[a-zA-Z_]+[a-zA-Z_0-9]*");
-    REGEX(INT, "[a-zA-Z_]+[a-zA-Z_0-9]*");
-    REGEX(FLOAT, "[+-]?[0-9]+[.][0-9]+");
-    REGEX(STRING, "\".*\"");
-    REGEX(COMMENT, "#.*");
-    REGEX(EQ, "=")
-    REGEX(SPACE, "[ \t\r]+");
-#undef REGEX
-    inited = true;
-  }
+  static void InitTypes();
 
 private:
   static std::vector<std::string> typenames;
@@ -120,23 +115,7 @@ class TokenStream {
 public:
   explicit TokenStream(const std::string &buffer) : buffer_(buffer) {}
 
-  Token NextToken() {
-    IgnoreSpace();
-    if (cursor_ >= buffer_.size())
-      return Token(_T(EOB), "");
-    std::smatch match;
-    // TODO improve the performance by memo
-    for (int type = 1; type < kNumTypes; type++) {
-      auto tmp = buffer_.substr(cursor_);
-      if (std::regex_search(tmp, match,
-                            Token::rule(Token::Type(type))) &&
-          match.position(0) == 0) {
-        cursor_ += match.str().size();
-        return Token(Token::Type(type), match.str());
-      }
-    }
-    return Token(_T(ERROR), "");
-  }
+  Token NextToken();
 
   char PeekChar() {
     if (cursor_ >= buffer_.size())
@@ -144,57 +123,10 @@ public:
     return buffer_[cursor_];
   }
 
-  void IgnoreSpace() {
-    char c;
-    while (cursor_ < buffer_.size()) {
-      c = buffer_[cursor_];
-      switch (c) {
-      case ' ':
-      case '\t':
-      case '\r':
-        cursor_++;
-        break;
-      default:
-        return;
-      }
-    }
-  }
+  void IgnoreSpace();
 
 private:
   std::string buffer_;
-  size_t cursor_{0};
-};
-
-class Lexier {
-public:
-  explicit Lexier(const std::string &buffer) : stream_(buffer) {}
-
-  Token NextToken() {
-    do {
-      switch (stream_.peek()) {
-      case ' ':
-      case '\t':
-      case '\r':
-        continue;
-      case ',':
-        return Token(Token::COMMA, stream_.fetch());
-      case '.':
-        return Token(Token::DOT, stream_.fetch());
-      }
-    } while (stream_.peek() != kEOF);
-  }
-
-  std::string NAME() {
-    std::string buf;
-    do {
-      buf.push_back(stream_.fetch());
-    } while (stream_.peek() != kEOF &&
-             (std::isalpha(stream_.peek()) || std::isdigit(stream_.peek())));
-    return buf;
-  }
-
-private:
-  Stream stream_;
   size_t cursor_{0};
 };
 

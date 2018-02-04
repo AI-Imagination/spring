@@ -2,8 +2,9 @@
 
 namespace spring {
 
-std::vector<std::string> Token::typenames_;
-std::vector<std::regex> Token::rules_;
+std::array<std::string, Token::kNumTypes> Token::typenames_;
+std::array<std::regex, Token::kNumTypes> Token::rules_;
+std::array<short, Token::kNumTypes> Token::priorities_;
 bool Token::inited{false};
 
 void Token::InitTypes() {
@@ -14,9 +15,6 @@ void Token::InitTypes() {
   rules_[static_cast<int>(_T(type__))] =                                       \
       std::regex(rule__, std::regex_constants::extended);                      \
   typenames_[static_cast<int>(_T(type__))] = #type__;
-
-  rules_.resize(Token::kNumTypes);
-  typenames_.resize(Token::kNumTypes);
 
   REGEX(SPACE, "[ \t\r]+");
   REGEX(NAME, "[a-zA-Z_]+[a-zA-Z_0-9]*");
@@ -42,6 +40,16 @@ void Token::InitTypes() {
   REGEX(COMMA, ",");
 #undef REGEX
   inited = true;
+}
+
+const std::string Token::type_name() const {
+  InitTypes();
+  return typenames_[static_cast<int>(type)];
+}
+
+std::string Token::tostring() const {
+  return "<Token " + type_name() + ":" + text + " pos:" + std::to_string(pos) +
+         ">";
 }
 
 Token TokenStream::NextToken() {

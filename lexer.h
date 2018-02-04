@@ -5,9 +5,12 @@
 #ifndef SPRING_LEXER_H
 #define SPRING_LEXER_H
 
+#include <array>
+#include <cstdint>
 #include <glog/logging.h>
 #include <regex>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace spring {
@@ -20,29 +23,24 @@ namespace spring {
  * Token is the basic unit of parser.
  */
 struct Token {
-
   enum class Type {
     SPACE = 0,
-    NAME, // _ab, ab23
-    // value
-    STRING, // "xxx"
-    FLOAT,  // 1.23
-    INT,    // 123
-    // single operator
-    DOT, // .
-    // binary operator
-    EQ,    // =
-    GT,    // >
-    GE,    // >=
-    LT,    // <
-    LE,    // <=
-    ADD,   // +
-    MINUS, // -
-    MUL,   // *
-    DIV,   // /
-    // syntax sugger
-    LP,      // left parenthese
-    RP,      // right parenthese
+    NAME,    // _ab, ab23
+    STRING,  // "xxx"
+    FLOAT,   // 1.23
+    INT,     // 123
+    DOT,     // .
+    EQ,      // =
+    GT,      // >
+    GE,      // >=
+    LT,      // <
+    LE,      // <=
+    ADD,     // +
+    MINUS,   // -
+    MUL,     // *
+    DIV,     // /
+    LP,      // (
+    RP,      // )
     COMMENT, // #...
     COMMA,   // ,
     ERROR,
@@ -53,7 +51,8 @@ struct Token {
 
   Type type;
   std::string text;
-  size_t pos;
+  uint32_t pos;
+  uint32_t lineno;
 
   explicit Token(Type type) : type(type) {}
   Token(Type type, char c) : type(type), text(std::to_string(c)) {}
@@ -61,21 +60,17 @@ struct Token {
   Token(Type type, std::string &&text, size_t pos)
       : type(type), text(std::move(text)), pos(pos) {}
 
-  const std::string type_name() const {
-    InitTypes();
-    return typenames_[static_cast<int>(type)];
-  }
+  const std::string type_name() const;
+  std::string tostring() const;
 
-  std::string tostring() const {
-    return "<Token " + type_name() + ":" + text +
-           " pos:" + std::to_string(pos) + ">";
-  }
+  bool is_eob() const { return type == _T(EOB); }
+  bool is_error() const { return type == _T(ERROR); }
 
   static const std::regex &rule(Type type) {
     return rules()[static_cast<int>(type)];
   }
 
-  static const std::vector<std::regex> &rules() {
+  static const std::array<std::regex, kNumTypes> &rules() {
     InitTypes();
     return rules_;
   }
@@ -84,8 +79,9 @@ private:
   static void InitTypes();
 
 private:
-  static std::vector<std::string> typenames_;
-  static std::vector<std::regex> rules_;
+  static std::array<std::string, kNumTypes> typenames_;
+  static std::array<std::regex, kNumTypes> rules_;
+  static std::array<short, kNumTypes> priorities_;
   static bool inited;
 };
 

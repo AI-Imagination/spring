@@ -1,7 +1,3 @@
-//
-// Created by Yan Chunwei on 1/25/18.
-//
-
 #ifndef SPRING_LEXER_H
 #define SPRING_LEXER_H
 
@@ -20,7 +16,8 @@ namespace spring {
 #define _T_NAME(type__) ::spring::Token::typenames[_T(type__)]
 
 /*
- * Token is the basic unit of parser.
+ * Token is the basic unit of parser, it helps to represent the code's structure.
+ * One Token represents one or more underlying instructions.
  */
 struct Token {
   enum class Type {
@@ -51,8 +48,8 @@ struct Token {
 
   Type type;
   std::string text;
-  uint32_t pos;
   uint32_t lineno;
+  uint32_t pos;  // position in a line
 
   explicit Token(Type type) : type(type) {}
   Token(Type type, char c) : type(type), text(std::to_string(c)) {}

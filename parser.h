@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <glog/logging.h>
 #include "lexer.h"
 
@@ -18,20 +19,27 @@ using nidx_t = uint32_t;
  */
 struct Node {
   Token token;
-  std::vector<nidx_t> children;
+  Node* left;
+  Node* right;
 };
 
 struct AST {
   using visitor_t = std::function<void(const Token &token)>;
+  Node* root;
   std::vector<Node> nodes;
 
   size_t size() const { return nodes.size(); }
-  const Node &root() const { return nodes.front(); }
   nidx_t AddChildren(nidx_t p, Node &&node);
   void PostOrderTranspose(visitor_t &visitor);
 };
 
 } // namespace ast
+
+
+struct Block {
+  Block* parent;
+  std::vector<Token> tokens;
+};
 
 /*
  * Input lines of codes, a Parser will translated each expression to an AST, and
@@ -42,6 +50,14 @@ public:
   void Parse(const std::vector<std::string> &codes, std::vector<Token> *tokens);
   void BuildAST(const std::vector<Token> &tokens, ast::AST *ast);
   void AST2Codes(const ast::AST &ast);
+
+ protected:
+  void EatExpression();
+  void EatLeftParen();
+  void EatRightParen();
+  void EatOp();
+  void EatLeftBrace();
+  void EatRightBrace();
 
 private:
 };

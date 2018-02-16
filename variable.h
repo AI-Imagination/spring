@@ -1,8 +1,8 @@
 #ifndef SPRING_VARIABLE_H
 #define SPRING_VARIABLE_H
 
-#include <string>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace spring {
@@ -21,13 +21,7 @@ struct ObjectV {
   std::vector<Variable> members;
 };
 
-enum class VarType {
-  kInt = 0,
-  kFloat,
-  kString,
-  kBool,
-  kObject
-};
+enum class VarType { kInt = 0, kFloat, kString, kBool, kObject };
 
 union VarData {
   int32_t intv;
@@ -44,4 +38,4 @@ struct Variable {
 
 }  // namespace spring
 
-#endif //SPRING_VARIABLE_H
+#endif  // SPRING_VARIABLE_H

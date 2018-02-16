@@ -4,15 +4,15 @@ namespace spring {
 
 enum class Instr {
   // names  args   description
-  EQ = 0, // a,b    v(a) = 123
-  ADD,    // a,b,c  v(a) = v(b) + v(c)
-  SUB,    // a,b,c  v(a) = v(b) - v(c)
+  EQ = 0,  // a,b    v(a) = 123
+  ADD,     // a,b,c  v(a) = v(b) + v(c)
+  SUB,     // a,b,c  v(a) = v(b) - v(c)
   MUL,
   DIV,
   MOD,
   // comparation operators.
-  EQS, //    a,b,c  v(a) = v(b) == v(c)
-  GT,  //    a,b,c  v(a) = v(b) > v(c)
+  EQS,  //    a,b,c  v(a) = v(b) == v(c)
+  GT,   //    a,b,c  v(a) = v(b) > v(c)
   GE,
   LT,
   LE
@@ -45,5 +45,5 @@ struct InstrArchive {
   std::vector<Frame> frame_stack;
 };
 
-} // namespace spring
+}  // namespace spring
 #endif

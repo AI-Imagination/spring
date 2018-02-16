@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 project(spring)
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
@@ -22,5 +23,5 @@ include(external/gflags)    # download, build, install gflags
 include(external/glog)      # download, build, install glog
 include(external/gtest)     # download, build, install gtest
 
-add_executable(spring main.cc lexer.h test_lexer.cc lexer.cc parser.cc var.h)
+add_executable(spring main.cc gc.cc _memory.h lexer.h test_lexer.cc lexer.cc parser.cc variable.h ${HEADER_FILES} gc.cc gc.h memory.cc memory.h tests/test_memory.cc status.h)
 target_link_libraries(spring gtest glog pthread)

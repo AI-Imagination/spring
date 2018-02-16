@@ -108,27 +108,27 @@ struct ObjectV {
 
 Any codes inside a `{}` is a block, there are 3 kinds of blocks
 
-- a block which has a local scope
+- a block which has a local symbol-table.
 - unnecessary blocks whose instructions can be merged into parent block.
 - a function definition, that has a block as shared code snippet.
 
-a block has its own scope, and a pointer to parent block.
+a block has its own symbol-table, and a pointer to parent block.
 
 ```c++
 struct Block {
     Block* parent;
-    Scope* scope;
+    SymbolTable* symbol_table;
     vector<Instr> instrs;
     string content;
 }
 ```
 
-### Scope
+### SymbolTable
 
-A Scope represent the scope where the variables are valid, each block has a scope of its self, and a block can visit parent's scope if local scope doesn't has some variables.
+A SymbolTable represent the scope where the variables are valid, each block has a scope of its self, and a block can visit parent's scope if local scope doesn't has some variables.
 
 ```c++
-struct Scope {
+struct SymbolTable {
     map<string, uint32_t> varnames;
     vector<Variable> variables;
 }

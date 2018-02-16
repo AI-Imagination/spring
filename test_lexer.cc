@@ -48,7 +48,7 @@ TEST(lexer, NextToken) {
   string buffer = "a = 12.34";
   TokenStream ss(buffer);
   auto token = ss.NextToken();
-  vector<Token::Type> types({_T(NAME), _T(EQ), _T(FLOAT)});
+  vector<Token::Type> types({_T(NAME), _T(ASSIGN), _T(FLOAT)});
   int offset = 0;
   while (token.type != _T(EOB) && token.type != _T(ERROR)) {
     LOG(INFO) << token.tostring();
@@ -60,13 +60,13 @@ TEST(lexer, NextToken) {
 TEST(lexer, NextToken1) {
   string buffer = "a = _b12_221_a + (b < 13)";
   TokenStream ss(buffer);
-  vector<Token::Type> types({_T(NAME), _T(EQ), _T(NAME), _T(ADD), _T(LP),
+  vector<Token::Type> types({_T(NAME), _T(ASSIGN), _T(NAME), _T(ADD), _T(LP),
                              _T(NAME), _T(LT), _T(INT), _T(RP)});
   auto token = ss.NextToken();
 
   int offset = 0;
   while (token.type != _T(EOB)) {
-    LOG(INFO) << token.tostring();
+    LOG(INFO) << offset << " " << token.tostring();
     ASSERT_TRUE(token.type != _T(ERROR));
     EXPECT_EQ(token.type, types[offset++]);
     token = ss.NextToken();

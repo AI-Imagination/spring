@@ -8,12 +8,11 @@ std::array<short, Token::kNumTypes> Token::priorities_;
 bool Token::inited{false};
 
 void Token::InitTypes() {
-  if (inited)
-    return;
+  if (inited) return;
 
-#define REGEX(type__, rule__)                                                  \
-  rules_[static_cast<int>(_T(type__))] =                                       \
-      std::regex(rule__, std::regex_constants::extended);                      \
+#define REGEX(type__, rule__)                             \
+  rules_[static_cast<int>(_T(type__))] =                  \
+      std::regex(rule__, std::regex_constants::extended); \
   typenames_[static_cast<int>(_T(type__))] = #type__;
 
   REGEX(SPACE, "[ \t\r]+");
@@ -24,11 +23,13 @@ void Token::InitTypes() {
 
   REGEX(DOT, "[.]");
 
-  REGEX(EQ, "[=]");
-  REGEX(GT, "[>]");
   REGEX(GE, ">=");
-  REGEX(LT, "<");
   REGEX(LE, "<=");
+  REGEX(EQ, "[=][=]");
+  REGEX(ASSIGN, "[=]");
+  REGEX(GT, "[>]");
+  REGEX(LT, "<");
+
   REGEX(ADD, "[+]");
   REGEX(MINUS, "-");
   REGEX(MUL, "[*]");
@@ -38,6 +39,10 @@ void Token::InitTypes() {
   REGEX(RP, "[)]");
   REGEX(COMMENT, "#.*");
   REGEX(COMMA, ",");
+  REGEX(IF, "if");
+  REGEX(WHILE, "while");
+  REGEX(FUNCTION, "function");
+  REGEX(RETURN, "return");
 #undef REGEX
   inited = true;
 }
@@ -54,8 +59,7 @@ std::string Token::tostring() const {
 
 Token TokenStream::NextToken() {
   IgnoreSpace();
-  if (cursor_ >= buffer_.size())
-    return Token(_T(EOB), "");
+  if (cursor_ >= buffer_.size()) return Token(_T(EOB), "");
   std::smatch match;
   // TODO improve the performance by memo
   for (int type = 1; type < Token::kNumTypes; type++) {
@@ -75,15 +79,15 @@ void TokenStream::IgnoreSpace() {
   while (cursor_ < buffer_.size()) {
     c = buffer_[cursor_];
     switch (c) {
-    case ' ':
-    case '\t':
-    case '\r':
-      cursor_++;
-      break;
-    default:
-      return;
+      case ' ':
+      case '\t':
+      case '\r':
+        cursor_++;
+        break;
+      default:
+        return;
     }
   }
 }
 
-} // namespace spring
+}  // namespace spring

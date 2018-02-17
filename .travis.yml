@@ -16,9 +16,11 @@ env:
 
 addons:
   apt:
+    sources:
+      - ubuntu-toolchain-r-test
     packages:
-      - gcc-4.8
-      - g++-4.8
+      - gcc-5
+      - g++-5
       - git
       - python
       - python-pip
@@ -33,6 +35,8 @@ before_install:
   - if [[ "$JOB" == "check_style" ]]; then sudo ln -s /usr/bin/clang-format-3.8 /usr/bin/clang-format; sudo pip install pre-commit flake8; fi
 
 script:
+  - gcc-5 --version
+  - g++-5 --version
   - if [[ "$JOB" == "check_style" ]]; then .travis/check_style.sh; fi
   - if [[ "$JOB" == "test" ]]; then /bin/bash .travis/tests.sh; fi
 

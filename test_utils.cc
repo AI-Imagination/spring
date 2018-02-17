@@ -15,9 +15,7 @@ class ListTester : public ::testing::Test {
   List<int> list;
 };
 
-TEST_F(ListTester, create) {
-  EXPECT_EQ(list.heavy_size(), 10);
-}
+TEST_F(ListTester, create) { EXPECT_EQ(list.heavy_size(), 10); }
 TEST_F(ListTester, Visit) {
   int count = 0;
   Visit<int>(*list.head, *list.tail, [&](const int& v) {
@@ -26,7 +24,7 @@ TEST_F(ListTester, Visit) {
   });
 }
 TEST_F(ListTester, RemoveIf) {
-  list.RemoveIf([](const int& v) {return v > 7;});
+  list.RemoveIf([](const int& v) { return v > 7; });
   EXPECT_EQ(list.heavy_size(), 8);
 }
 TEST_F(ListTester, RemoveAfter) {

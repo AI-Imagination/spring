@@ -101,7 +101,7 @@ struct Token {
  private:
   static std::array<std::string, kNumTypes> typenames_;
   static std::array<std::regex, kNumTypes> rules_;
-  static std::array<char, kNumTypes> priors_;   // operator priorities.
+  static std::array<char, kNumTypes> priors_;  // operator priorities.
   static bool inited;
 };
 

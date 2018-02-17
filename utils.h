@@ -1,8 +1,8 @@
 #ifndef SPRING_UTILS_H
 #define SPRING_UTILS_H
 
-#include <functional>
 #include <glog/logging.h>
+#include <functional>
 
 #include "memory.h"
 

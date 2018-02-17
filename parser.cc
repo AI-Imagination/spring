@@ -51,14 +51,15 @@ Status EatParens(node_list* list) {
   // search for left parentheses
   auto* p = list->head.get();
   std::vector<int> stack;
-  while(p) {
+  while (p) {
     if (p->data->token->is_left_paren()) {
       node_list::Node* lp = p;
       node_list::Node* rp = p;
       // find right parentheses
       stack.clear();
-      while(p) {
-        if (p->data->token->is_left_paren()) stack.push_back(LP);
+      while (p) {
+        if (p->data->token->is_left_paren())
+          stack.push_back(LP);
         else if (p->data->token->is_right_paren()) {
           CHECK(!stack.empty());
           CHECK_EQ(stack.back(), LP);

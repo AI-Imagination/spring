@@ -10,8 +10,9 @@ bool Token::inited{false};
 void Token::InitTypes() {
   if (inited) return;
 
-// The operator precedence reference to http://en.cppreference.com/w/cpp/language/operator_precedence
-const char kNoPrior = -1;  // no priority for non-operator.
+  // The operator precedence reference to
+  // http://en.cppreference.com/w/cpp/language/operator_precedence
+  const char kNoPrior = -1;  // no priority for non-operator.
 #define REGEX(type__, rule__, priority)                   \
   rules_[static_cast<int>(_T(type__))] =                  \
       std::regex(rule__, std::regex_constants::extended); \

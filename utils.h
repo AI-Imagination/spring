@@ -1,6 +1,7 @@
 #ifndef SPRING_UTILS_H
 #define SPRING_UTILS_H
 
+#include <functional>
 #include <glog/logging.h>
 
 #include "memory.h"
@@ -18,6 +19,10 @@ struct List {
 
   using node_ptr = SharedPtr<Node>;
 
+  List() = default;
+
+  List(const node_ptr& begin, const node_ptr& end) : head(begin), tail(end) {}
+
   void Append(const T& data) {
     auto n = MakeShared<Node>(data);
     if (!head) {
@@ -30,9 +35,22 @@ struct List {
     }
   }
 
-  void InsertAfter(node_ptr pre, node_ptr n) {
+  void InsertAfter(const node_ptr& pre, const node_ptr& n) {
     n->next = pre->next;
     pre->next = n;
+  }
+
+  void PushFront(const T& data) {
+    auto n = MakeShared<Node>(data);
+    if (head) {
+      n->next = head->next;
+    }
+    head = n;
+  }
+
+  void PopFront() {
+    if (!head) return;
+    head = head->next;
   }
 
   void RemoveAfter(node_ptr pre) {
@@ -42,12 +60,13 @@ struct List {
   }
 
   // Remove the nodes between (begin_pre+1, end) inclusively.
-  void RemoveAfter(node_ptr begin_pre, node_ptr end) {
+  template <typename Ptr>
+  void RemoveAfter(Ptr begin_pre, Ptr end) {
     // TODO update tail
     begin_pre->next = end->next;
   }
 
-  void RemoveIf(std::function<bool(const T&)>& tester) {
+  void RemoveIf(const std::function<bool(const T&)>& tester) {
     // TODO update tail
     if (!head) return;
     auto p = head;
@@ -80,7 +99,7 @@ struct List {
 template <typename T>
 void Visit(const typename List<T>::Node& begin,
            const typename List<T>::Node& end,
-           std::function<void(const T&)>& handler) {
+           const std::function<void(const T&)>& handler) {
   auto* p = &begin;
   while (p != &end) {
     CHECK(p);

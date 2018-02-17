@@ -43,38 +43,67 @@ class SharedPtr {
 
   SharedPtr() = default;
   SharedPtr(const SharedPtr &other) {
+    if (aux_) {
+      aux_->dec();
+    }
     aux_ = other.aux_;
     pt_ = other.pt_;
-    aux_->inc();
+    if (aux_) {
+      aux_->inc();
+    }
   }
   SharedPtr(value_t *pt) : pt_(pt), aux_(new Aux) { aux_->inc(); }
   SharedPtr(SharedPtr &&other) {
     pt_ = other.pt_;
     aux_ = other.aux_;
+    other.pt_ = nullptr;
+    other.aux_ = nullptr;
   }
   SharedPtr &operator=(const SharedPtr &other) {
     aux_ = other.aux_;
     pt_ = other.pt_;
-    aux_->inc();
+    if (aux_) aux_->inc();
+    return *this;
   }
   SharedPtr &operator=(SharedPtr &&other) {
     aux_ = other.aux_;
     pt_ = other.pt_;
+    other.pt_ = nullptr;
+    other.aux_ = nullptr;
+    return *this;
   }
 
-  value_t &operator*() { return *pt_; }
-  value_t *operator->() { return pt_; }
+  void Reset(value_t *pt = nullptr) {
+    if (aux_->dec() == 0) {
+      delete aux_;
+      Delector::Global()(pt_);
+    }
+    if (pt != nullptr) {
+      aux_ = new Aux;
+      aux_->inc();
+    }
+    pt_ = pt;
+  }
+  value_t &operator*() const { return *pt_; }
+  value_t *operator->() const { return pt_; }
+  bool operator==(const self_t &other) const { return pt_ == other.pt_; }
+  bool operator!=(const self_t &other) const { return pt_ != other.pt_; }
+  explicit operator bool() const { return pt_ != nullptr; }
+
   const value_t *get() { return pt_; }
-  explicit operator bool() { return get() != nullptr; }
+  const Aux *aux() const { return aux_; }
 
   ~SharedPtr() {
-    if (aux_->dec() == 0) {
+    if (aux_ && aux_->dec() == 0) {
+      delete aux_;
       Delector::Global()(pt_);
+      aux_ = nullptr;
+      pt_ = nullptr;
     }
   }
 
  private:
-  Aux *aux_;
+  Aux *aux_{nullptr};
   value_t *pt_{nullptr};
 };
 

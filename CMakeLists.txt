@@ -23,5 +23,5 @@ include(external/gflags)    # download, build, install gflags
 include(external/glog)      # download, build, install glog
 include(external/gtest)     # download, build, install gtest
 
-add_executable(spring main.cc gc.cc _memory.h lexer.h test_lexer.cc lexer.cc parser.cc variable.h ${HEADER_FILES} gc.cc gc.h memory.cc memory.h tests/test_memory.cc status.h)
+add_executable(spring main.cc gc.cc lexer.h test_lexer.cc lexer.cc parser.cc variable.h ${HEADER_FILES} gc.cc gc.h memory.cc memory.h tests/test_memory.cc status.h utils.h test_utils.cc)
 target_link_libraries(spring gtest glog pthread)

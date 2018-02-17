@@ -21,17 +21,21 @@ class Status {
   std::string msg_;
 };
 
-#define SP_LOG(msg)                                                 \
-  std::err << __DATE__ << " " << __TIME__ << " " << __FILE__ << " " \
-           << __LINE__ << "\t" << msg << std::endl;
+#define SP_LOG(msg)                                                  \
+  std::cerr << __DATE__ << " " << __TIME__ << " " << __FILE__ << " " \
+            << __LINE__ << "\t" << msg << std::endl;
 #define SP_LOG_IF(cond, msg) \
   { SP_LOG(cond, msg); }     \
   while (false)              \
     ;
-
 #define SP_CHECK_OK(status) \
   if (!status.ok()) {       \
     SP_LOG(status.msg());   \
+  }
+#define SP_CHECK(cond, errno) \
+  if (!(cond)) {              \
+    SP_LOG("error");          \
+    return Status(errno);     \
   }
 
 }  // namespace spring

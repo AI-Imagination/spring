@@ -79,6 +79,12 @@ struct Token {
   bool is_while() const { return type == _T(WHILE); }
   bool is_function() const { return type == _T(FUNCTION); }
   bool is_return() const { return type == _T(RETURN); }
+  bool is_left_paren() const { return type == _T(LP); }
+  bool is_right_paren() const { return type == _T(RP); }
+  bool is_left_brace() const { return type == _T(LB); }
+  bool is_right_brace() const { return type == _T(RB); }
+  bool is_space() const { return type == _T(SPACE); }
+  bool is_comma() const { return type == _T(COMMA); }
 
   static const std::regex &rule(Type type) {
     return rules()[static_cast<int>(type)];

@@ -9,4 +9,5 @@ TEST(List, create) {
   for (int i = 0; i < 10; i++) {
     list.Append(i);
   }
+  EXPECT_EQ(list.heavy_size(), 10);
 }

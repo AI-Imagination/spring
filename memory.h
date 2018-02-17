@@ -90,7 +90,7 @@ class SharedPtr {
   bool operator!=(const self_t &other) const { return pt_ != other.pt_; }
   explicit operator bool() const { return pt_ != nullptr; }
 
-  const value_t *get() { return pt_; }
+  const value_t *get() const { return pt_; }
   const Aux *aux() const { return aux_; }
 
   ~SharedPtr() {

@@ -36,16 +36,19 @@ struct List {
   }
 
   void RemoveAfter(node_ptr pre) {
+    // TODO update tail
     if ((!pre) || (!pre->next)) return;
     pre->next = pre->next->next;
   }
 
   // Remove the nodes between (begin_pre+1, end) inclusively.
   void RemoveAfter(node_ptr begin_pre, node_ptr end) {
+    // TODO update tail
     begin_pre->next = end->next;
   }
 
   void RemoveIf(std::function<bool(const T&)>& tester) {
+    // TODO update tail
     if (!head) return;
     auto p = head;
     while (p->next) {
@@ -59,9 +62,32 @@ struct List {
     }
   }
 
+  size_t heavy_size() const {
+    auto* p = head.get();
+    size_t count = 0;
+    while (p) {
+      count++;
+      p = p->next.get();
+    }
+    return count;
+  }
+
   node_ptr head;  // not included.
   node_ptr tail;
 };
+
+// both begin and end are inclusive.
+template <typename T>
+void Visit(const typename List<T>::Node& begin,
+           const typename List<T>::Node& end,
+           std::function<void(const T&)>& handler) {
+  auto* p = &begin;
+  while (p != &end) {
+    CHECK(p);
+    handler(p->data);
+    p = p->next.get();
+  }
+}
 
 }  // namespace spring
 

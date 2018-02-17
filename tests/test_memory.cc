@@ -1,8 +1,7 @@
 #include "../memory.h"
 
-#include <vector>
 #include <gtest/gtest.h>
-
+#include <vector>
 
 using namespace spring;
 using namespace std;
@@ -52,15 +51,12 @@ TEST(memory, ref_count) {
   EXPECT_EQ(vec.aux()->count, 2);
 }
 TEST(memory, bool_op) {
-  using ptr = SharedPtr<vector<int>> ;
+  using ptr = SharedPtr<vector<int>>;
   ptr epy;
   EXPECT_FALSE(epy);
 
   ptr tre = MakeShared<vector<int>>();
   EXPECT_TRUE(tre);
 }
-// TODO(Superjomn) create a benchmark to compare the performance with std::shared_ptr
-
-
-
-
+// TODO(Superjomn) create a benchmark to compare the performance with
+// std::shared_ptr

@@ -13,7 +13,7 @@ spring language will give a simple and familiar syntax for `C` and `Python` prog
 import math
 import math.real as realmath
 
-# declare variables 
+# declare variables
 var a = 1
 var b = a + 1
 ```
@@ -138,7 +138,7 @@ struct SymbolTable {
 
 A function is an reusable block, with a list of arguments (might be represented as a `Scope`).
 
-The function's definition is 
+The function's definition is
 
 ```c++
 // function definition
@@ -148,7 +148,7 @@ struct Function {
 }
 ```
 
-A function call is 
+A function call is
 
 ```c++
 struct FunctionCall {
@@ -323,7 +323,7 @@ struct Frame {
     void Run();
     void PushData(Variable&& var);
     void RunInst();
-    
+
     Frame* parent;				// push result to parent frame
    	Scope* parent_scope;
     Scope local_scope;
@@ -339,7 +339,7 @@ struct Frame {
 Conditional operations relays on block to selectively execute some block, for example
 
 ```c++
-if (a > 2) { 
+if (a > 2) {
 	# block 1
     ...
 } else {
@@ -368,7 +368,7 @@ while (a > 2) {
 }
 ```
 
-corresponds to 
+corresponds to
 
 ```
 LOAD a 					# instruction offset: x0
@@ -378,4 +378,3 @@ IF_FALSE_GOTO	(x1+1)	# jump out the while loop
 ...						# instructions of block3
 WHILE_TRUE_GOTO X0		# instruction offset: x1
 ```
-

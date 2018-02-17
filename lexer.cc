@@ -4,45 +4,48 @@ namespace spring {
 
 std::array<std::string, Token::kNumTypes> Token::typenames_;
 std::array<std::regex, Token::kNumTypes> Token::rules_;
-std::array<short, Token::kNumTypes> Token::priorities_;
+std::array<char, Token::kNumTypes> Token::priors_;
 bool Token::inited{false};
 
 void Token::InitTypes() {
   if (inited) return;
 
-#define REGEX(type__, rule__)                             \
+// The operator precedence reference to http://en.cppreference.com/w/cpp/language/operator_precedence
+const char kNoPrior = -1;  // no priority for non-operator.
+#define REGEX(type__, rule__, priority)                   \
   rules_[static_cast<int>(_T(type__))] =                  \
       std::regex(rule__, std::regex_constants::extended); \
-  typenames_[static_cast<int>(_T(type__))] = #type__;
+  typenames_[static_cast<int>(_T(type__))] = #type__;     \
+  priors_[static_cast<int>(_T(type__))] = priority;
 
-  REGEX(SPACE, "[ \t\r]+");
-  REGEX(NAME, "[a-zA-Z_]+[a-zA-Z_0-9]*");
-  REGEX(STRING, R"abc(".*")abc");
-  REGEX(FLOAT, "[+-]?[0-9]+[.][0-9]+");
-  REGEX(INT, "[0-9]+");
+  REGEX(SPACE, "[ \t\r]+", kNoPrior);
+  REGEX(NAME, "[a-zA-Z_]+[a-zA-Z_0-9]*", kNoPrior);
+  REGEX(STRING, R"abc(".*")abc", kNoPrior);
+  REGEX(FLOAT, "[+-]?[0-9]+[.][0-9]+", kNoPrior);
+  REGEX(INT, "[0-9]+", kNoPrior);
 
-  REGEX(DOT, "[.]");
+  REGEX(DOT, "[.]", 2);
 
-  REGEX(GE, ">=");
-  REGEX(LE, "<=");
-  REGEX(EQ, "[=][=]");
-  REGEX(ASSIGN, "[=]");
-  REGEX(GT, "[>]");
-  REGEX(LT, "<");
+  REGEX(GE, ">=", 9);
+  REGEX(LE, "<=", 9);
+  REGEX(EQ, "[=][=]", 10);
+  REGEX(ASSIGN, "[=]", 16);
+  REGEX(GT, "[>]", 9);
+  REGEX(LT, "<", 9);
 
-  REGEX(ADD, "[+]");
-  REGEX(MINUS, "-");
-  REGEX(MUL, "[*]");
-  REGEX(DIV, "[/]");
+  REGEX(ADD, "[+]", 6);
+  REGEX(MINUS, "-", 6);
+  REGEX(MUL, "[*]", 5);
+  REGEX(DIV, "[/]", 5);
 
-  REGEX(LP, "[(]");
-  REGEX(RP, "[)]");
-  REGEX(COMMENT, "#.*");
-  REGEX(COMMA, ",");
-  REGEX(IF, "if");
-  REGEX(WHILE, "while");
-  REGEX(FUNCTION, "function");
-  REGEX(RETURN, "return");
+  REGEX(LP, "[(]", kNoPrior);
+  REGEX(RP, "[)]", kNoPrior);
+  REGEX(COMMENT, "#.*", kNoPrior);
+  REGEX(COMMA, ",", kNoPrior);
+  REGEX(IF, "if", kNoPrior);
+  REGEX(WHILE, "while", kNoPrior);
+  REGEX(FUNCTION, "function", kNoPrior);
+  REGEX(RETURN, "return", kNoPrior);
 #undef REGEX
   inited = true;
 }

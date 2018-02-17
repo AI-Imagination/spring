@@ -101,11 +101,12 @@ struct Token {
  private:
   static std::array<std::string, kNumTypes> typenames_;
   static std::array<std::regex, kNumTypes> rules_;
-  static std::array<short, kNumTypes> priorities_;
+  static std::array<char, kNumTypes> priors_;   // operator priorities.
   static bool inited;
 };
 
 static const char kEOF = '\0';
+static const char kEOL = '\n';
 
 class Stream {
  public:

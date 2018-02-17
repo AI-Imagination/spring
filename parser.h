@@ -25,6 +25,8 @@ struct Node {
   SharedPtr<Node> right;
 };
 
+using node_ptr = SharedPtr<Node>;
+
 struct AST {
   using visitor_t = std::function<void(const Token &token)>;
   Node *root;

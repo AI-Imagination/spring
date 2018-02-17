@@ -52,7 +52,7 @@ class SharedPtr {
       aux_->inc();
     }
   }
-  SharedPtr(value_t *pt) : pt_(pt), aux_(new Aux) { aux_->inc(); }
+  SharedPtr(value_t *pt) { Reset(pt); }
   SharedPtr(SharedPtr &&other) {
     pt_ = other.pt_;
     aux_ = other.aux_;
@@ -74,9 +74,11 @@ class SharedPtr {
   }
 
   void Reset(value_t *pt = nullptr) {
-    if (aux_->dec() == 0) {
+    if (aux_ && aux_->dec() == 0) {
       delete aux_;
       Delector::Global()(pt_);
+      aux_ = nullptr;
+      pt_ = nullptr;
     }
     if (pt != nullptr) {
       aux_ = new Aux;
@@ -90,7 +92,7 @@ class SharedPtr {
   bool operator!=(const self_t &other) const { return pt_ != other.pt_; }
   explicit operator bool() const { return pt_ != nullptr; }
 
-  const value_t *get() const { return pt_; }
+  value_t *const get() const { return pt_; }
   const Aux *aux() const { return aux_; }
 
   ~SharedPtr() {

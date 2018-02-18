@@ -21,6 +21,8 @@ using nidx_t = uint32_t;
  * nodes is limited, and can be stored in a vector.
  */
 struct Node {
+  Node(const Token *token) : token(token) {}
+
   const Token *token;
   SharedPtr<Node> left;
   SharedPtr<Node> right;
@@ -149,6 +151,9 @@ class Parser {
 };
 
 using node_list = List<node_ptr>;
+
+Status Tokens2List(const std::vector<Token> &tokens, List<ast::node_ptr> *list);
+
 /*
  * Parse and clear the contents within the parentheses, generate ASTs and insert
  * back into the list.
@@ -163,11 +168,12 @@ Status EatPriors(node_list *list);
 
 /*
  * 2 + 1 ->
+ *
  *   (+)
  *   / \
  *  2   1
  */
-Status EatBinaryOp(node_list* list, node_list::Node *larg);
+Status EatBinaryOp(node_list *list, const node_list::node_ptr &larg);
 
 }  // namespace spring
 #endif

@@ -53,6 +53,8 @@ struct Token {
     FUNCTION,  // function
     RETURN,    // return
 
+    AST,  // ast subtree
+
     ERROR,
     EOB
   };
@@ -90,6 +92,8 @@ struct Token {
     return rules()[static_cast<int>(type)];
   }
   char prior() const { return priors_[static_cast<int>(type)]; }
+
+  void SetType(Type t) { type = t; }
 
   static const std::array<std::regex, kNumTypes> &rules() {
     InitTypes();
@@ -137,18 +141,22 @@ class TokenStream {
  public:
   explicit TokenStream(const std::string &buffer) : buffer_(buffer) {}
 
-  Token NextToken();
+  Token NextToken() const;
+
+  std::vector<Token> GetTokens() const;
 
   char PeekChar() {
     if (cursor_ >= buffer_.size()) return kEOF;
     return buffer_[cursor_];
   }
 
-  void IgnoreSpace();
+  void IgnoreSpace() const;
+
+  std::string DebugString() const;
 
  private:
   std::string buffer_;
-  size_t cursor_{0};
+  mutable size_t cursor_{0};
 };
 
 }  // namespace spring

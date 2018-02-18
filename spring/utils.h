@@ -24,6 +24,14 @@ struct List {
 
   List(const node_ptr& begin, const node_ptr& end) : head(begin), tail(end) {}
 
+  const T& operator[](size_t offset) {
+    auto* p = head.get();
+    for (size_t i = 0; i < offset; i++) {
+      p = p->next.get();
+    }
+    return p->data;
+  }
+
   void Append(const T& data) {
     auto n = MakeShared<Node>(data);
     if (!head) {
@@ -37,10 +45,17 @@ struct List {
     }
   }
 
-  void InsertAfter(const node_ptr& pre, const node_ptr& n) {
-    n->pre = pre.get();
-    n->next = pre->next;
-    pre->next = n;
+  void InsertAfter(const node_ptr& pre, const T& n) {
+    auto node = MakeShared<Node>(n);
+    node->pre = pre.get();
+    node->next = pre->next;
+    pre->next = node;
+  }
+  void InsertAfter(Node* pre, const T& n) {
+    auto node = MakeShared<Node>(n);
+    node->pre = const_cast<Node*>(pre);
+    node->next = pre->next;
+    pre->next = node;
   }
 
   void PushFront(const T& data) {

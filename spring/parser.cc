@@ -105,22 +105,39 @@ Status EatPriors(node_list* list) {
   }
 }
 
-Status EatBinaryOp(node_list* list, node_list::Node* larg) {
+Status EatBinaryOp(node_list* list, const node_list::node_ptr& larg) {
   CHECK(larg->next);
   CHECK(larg->next->next);
+  auto op = larg->next;
+  auto rarg = op->next;
+  auto* pre = larg->pre ? larg->pre : list->head.get();
   // remove the tripple
-  list->Remove(larg->next, larg->next->next);
-
-  auto ast = larg->next->data;
-  ast->left = larg->data;
-  ast->right = larg->next->next->data;
-  larg->data = ast;
+  list->Remove(larg, rarg);
+  op->next.Reset();
+  rarg->next.Reset();
+  // the center of this tripple should be an OP
+  CHECK_NE(op->data->token->prior(), -1);
+  const_cast<Token*>(op->data->token)->SetType(_T(AST));
+  op->data->left = larg->data;
+  op->data->right = rarg->data;
+  list->InsertAfter(pre, op->data);
   return Status();
 }
 
 node_ptr Parser::EatExpr() {
   // keep scanning the highest priority operators.
   return spring::node_ptr();
+}
+
+Status Tokens2List(const std::vector<Token>& tokens,
+                   List<ast::node_ptr>* list) {
+  // skip space
+  for (const auto& token : tokens) {
+    if (token.is_space()) continue;
+    auto node = MakeShared<ast::Node>(&token);
+    list->Append(node);
+  }
+  return Status();
 }
 
 }  // namespace spring

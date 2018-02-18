@@ -33,3 +33,8 @@ TEST_F(ListTester, Remove) {
   EXPECT_EQ(list.head->pre, nullptr);
   EXPECT_EQ(list.head->next->data, 2);
 }
+TEST_F(ListTester, operator_at) {
+  for (int i = 0; i < 10; i++) {
+    EXPECT_EQ(list[i], i);
+  }
+}

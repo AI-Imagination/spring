@@ -1,5 +1,7 @@
 #include "spring/lexer.h"
 
+#include <sstream>
+
 namespace spring {
 
 std::array<std::string, Token::kNumTypes> Token::typenames_;
@@ -47,6 +49,8 @@ void Token::InitTypes() {
   REGEX(WHILE, "while", kNoPrior);
   REGEX(FUNCTION, "function", kNoPrior);
   REGEX(RETURN, "return", kNoPrior);
+
+  REGEX(AST, "AST", kNoPrior);
 #undef REGEX
   inited = true;
 }
@@ -61,7 +65,7 @@ std::string Token::tostring() const {
          ">";
 }
 
-Token TokenStream::NextToken() {
+Token TokenStream::NextToken() const {
   IgnoreSpace();
   if (cursor_ >= buffer_.size()) return Token(_T(EOB), "");
   std::smatch match;
@@ -78,7 +82,18 @@ Token TokenStream::NextToken() {
   return Token(_T(ERROR), "parsing error: " + buffer_.substr(cursor_), cursor_);
 }
 
-void TokenStream::IgnoreSpace() {
+std::vector<Token> TokenStream::GetTokens() const {
+  cursor_ = 0;
+  std::vector<Token> tokens;
+  auto token = NextToken();
+  while (!token.is_eob()) {
+    tokens.push_back(token);
+    token = NextToken();
+  }
+  return tokens;
+}
+
+void TokenStream::IgnoreSpace() const {
   char c;
   while (cursor_ < buffer_.size()) {
     c = buffer_[cursor_];
@@ -92,6 +107,14 @@ void TokenStream::IgnoreSpace() {
         return;
     }
   }
+}
+
+std::string TokenStream::DebugString() const {
+  std::stringstream ss;
+  for (const auto& token : GetTokens()) {
+    ss << token.tostring() << " ";
+  }
+  return ss.str();
 }
 
 }  // namespace spring

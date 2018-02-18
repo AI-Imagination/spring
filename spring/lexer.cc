@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "spring/lexer.h"
 
 namespace spring {
 

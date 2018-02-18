@@ -89,6 +89,7 @@ struct Token {
   static const std::regex &rule(Type type) {
     return rules()[static_cast<int>(type)];
   }
+  char prior() const { return priors_[static_cast<int>(type)]; }
 
   static const std::array<std::regex, kNumTypes> &rules() {
     InitTypes();

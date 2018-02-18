@@ -23,5 +23,6 @@ include(external/gflags)    # download, build, install gflags
 include(external/glog)      # download, build, install glog
 include(external/gtest)     # download, build, install gtest
 
-add_executable(spring main.cc gc.cc lexer.h test_lexer.cc lexer.cc parser.cc variable.h ${HEADER_FILES} gc.cc gc.h memory.cc memory.h tests/test_memory.cc status.h utils.h test_utils.cc)
+include_directories(${CMAKE_SOURCE_DIR})
+add_executable(spring spring/main.cc spring/gc.cc spring/lexer.h tests/test_lexer.cc spring/lexer.cc spring/parser.cc spring/variable.h ${HEADER_FILES} spring/gc.cc spring/gc.h spring/memory.cc spring/memory.h tests/test_memory.cc spring/status.h spring/utils.h tests/test_utils.cc)
 target_link_libraries(spring gtest glog pthread)

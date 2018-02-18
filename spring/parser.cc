@@ -1,5 +1,6 @@
-#include "parser.h"
-#include "utils.h"
+#include "spring/parser.h"
+#include <set>
+#include "spring/utils.h"
 
 namespace spring {
 
@@ -23,12 +24,6 @@ namespace spring {
  *                  /   \
  *                 1     2
  */
-
-using node_list = List<node_ptr>;
-/*
- * Remove all the parentheses, and insert back ASTs.
- */
-Status EatParens(node_list* list);
 
 /*
  * Parse an expression, no () is allowed in an expression.
@@ -65,9 +60,7 @@ Status EatParens(node_list* list) {
           CHECK_EQ(stack.back(), LP);
           stack.pop_back();
         }
-        if (stack.empty()) {
-          break;
-        }
+        if (stack.empty()) break;
         rp = p;
         p = p->next.get();
       }  // while
@@ -75,7 +68,7 @@ Status EatParens(node_list* list) {
       // rp point node previous )
       rp->next = rp->next->next;  // skip )
       // remove from the original expression
-      list->RemoveAfter(lp, rp);
+      list->Remove(lp->next.get(), rp);
       rp->next = nullptr;
       node_list sublist(lp, rp);
       ast::node_ptr subtree;
@@ -84,6 +77,44 @@ Status EatParens(node_list* list) {
     }
     p = p->next.get();
   }
+  return Status();
+}
+
+Status EatPriors(node_list* list) {
+  std::set<char> priors;
+  Visit<ast::node_ptr>(*list->head, *list->tail,
+                       [&](const SharedPtr<ast::Node>& node) {
+                         if (node->token->prior() != -1) {
+                           priors.insert(node->token->prior());
+                         }
+                       });
+
+  auto priors_sorted = std::vector<char>(priors.begin(), priors.end());
+  sort(priors_sorted.begin(), priors_sorted.end());
+
+  node_list::node_ptr left_arg;
+  for (char prior : priors_sorted) {
+    auto* p = list->head.get();
+    while (p) {
+      if (p->data->token->prior() == prior) {
+        // remove the triple from the original list
+        CHECK(p->next);
+        list->Remove(left_arg, p->next);
+      }
+    }
+  }
+}
+
+Status EatBinaryOp(node_list* list, node_list::Node* larg) {
+  CHECK(larg->next);
+  CHECK(larg->next->next);
+  // remove the tripple
+  list->Remove(larg->next, larg->next->next);
+
+  auto ast = larg->next->data;
+  ast->left = larg->data;
+  ast->right = larg->next->next->data;
+  larg->data = ast;
   return Status();
 }
 

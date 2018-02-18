@@ -89,6 +89,7 @@ class SharedPtr {
   value_t &operator*() const { return *pt_; }
   value_t *operator->() const { return pt_; }
   bool operator==(const self_t &other) const { return pt_ == other.pt_; }
+  bool operator==(const T* other) const { return pt_ == other; }
   bool operator!=(const self_t &other) const { return pt_ != other.pt_; }
   explicit operator bool() const { return pt_ != nullptr; }
 

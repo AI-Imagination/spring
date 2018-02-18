@@ -5,9 +5,10 @@
 #include <functional>
 #include <memory>
 
-#include "lexer.h"
-#include "memory.h"
-#include "status.h"
+#include "spring/lexer.h"
+#include "spring/memory.h"
+#include "spring/status.h"
+#include "spring/utils.h"
 
 namespace spring {
 namespace ast {
@@ -146,6 +147,27 @@ class Parser {
   // The offset of current token.
   uint32_t token_offest_{0};
 };
+
+using node_list = List<node_ptr>;
+/*
+ * Parse and clear the contents within the parentheses, generate ASTs and insert
+ * back into the list.
+ */
+Status EatParens(node_list *list);
+
+/*
+ * Process the operators by the precedence order, the most important operators
+ * first. Build an AST with operator and left and right arguments.
+ */
+Status EatPriors(node_list *list);
+
+/*
+ * 2 + 1 ->
+ *   (+)
+ *   / \
+ *  2   1
+ */
+Status EatBinaryOp(node_list* list, node_list::Node *larg);
 
 }  // namespace spring
 #endif

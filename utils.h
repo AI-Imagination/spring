@@ -15,6 +15,7 @@ struct List {
 
     T data;
     SharedPtr<Node> next;
+    Node* pre{nullptr};  // raw pointer to avoid cyclic reference.
   };
 
   using node_ptr = SharedPtr<Node>;
@@ -30,20 +31,23 @@ struct List {
       tail = n;
     } else {
       CHECK(tail);
+      n->pre = tail.get();
       tail->next = n;
       tail = n;
     }
   }
 
   void InsertAfter(const node_ptr& pre, const node_ptr& n) {
+    n->pre = pre.get();
     n->next = pre->next;
     pre->next = n;
   }
 
   void PushFront(const T& data) {
     auto n = MakeShared<Node>(data);
+    head->pre = n.get();
     if (head) {
-      n->next = head->next;
+      n->next = head;
     }
     head = n;
   }
@@ -51,33 +55,63 @@ struct List {
   void PopFront() {
     if (!head) return;
     head = head->next;
+    head->pre = nullptr;
   }
 
-  void RemoveAfter(node_ptr pre) {
-    // TODO update tail
-    if ((!pre) || (!pre->next)) return;
-    pre->next = pre->next->next;
+  void Remove(node_ptr n) {
+    if (!n) return;
+    ;
+    if (n == head) {
+      if (head->next) {
+        head->next->pre = nullptr;
+        head = head->next;
+      } else {
+        head = nullptr;
+        tail = nullptr;
+      }
+    } else {
+      n->next->pre = n->pre;
+      n->pre->next = n->next;
+    }
   }
 
   // Remove the nodes between (begin_pre+1, end) inclusively.
   template <typename Ptr>
-  void RemoveAfter(Ptr begin_pre, Ptr end) {
-    // TODO update tail
-    begin_pre->next = end->next;
+  void Remove(Ptr begin, Ptr end) {
+    if (head == begin) {
+      if (end) {
+        head = end->next;
+        end->pre = nullptr;
+      }
+    }
+    if (tail == end) {
+      if (!begin->pre) {
+        tail.Reset();
+      }
+    } else {
+      begin->pre->next = end->next;
+      end->next->pre = begin->pre;
+    }
   }
 
   void RemoveIf(const std::function<bool(const T&)>& tester) {
     // TODO update tail
     if (!head) return;
-    auto p = head;
-    while (p->next) {
-      if (tester(p->next->data)) {
-        p->next = p->next->next;
-      } else
-        p = p->next;
+    auto p = head->next;
+    while (p) {
+      if (tester(p->data)) {
+        if (p->next) {
+          p->next->pre = p->pre;
+          p->pre->next = p->next;
+        } else {  // tail
+          p->pre->next.Reset();
+        }
+      }
+      p = p->next;
     }
     if (tester(head->data)) {
       head = head->next;
+      head->pre = nullptr;
     }
   }
 

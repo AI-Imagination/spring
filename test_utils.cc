@@ -27,7 +27,9 @@ TEST_F(ListTester, RemoveIf) {
   list.RemoveIf([](const int& v) { return v > 7; });
   EXPECT_EQ(list.heavy_size(), 8);
 }
-TEST_F(ListTester, RemoveAfter) {
-  list.RemoveAfter(list.head);
+TEST_F(ListTester, Remove) {
+  list.Remove(list.head);
+  EXPECT_EQ(list.head->data, 1);
+  EXPECT_EQ(list.head->pre, nullptr);
   EXPECT_EQ(list.head->next->data, 2);
 }

@@ -9,6 +9,7 @@ using namespace std;
 TEST(memory, init) {
   auto vec = MakeShared<vector<int>>();
   vec->push_back(1);
+  EXPECT_EQ(Memory::Global().size(), sizeof(vector<int>));
   ASSERT_EQ(vec->size(), 1UL);
 }
 TEST(memory, init_with_args) {
@@ -24,6 +25,7 @@ TEST(memory, move) {
     auto vec2 = std::move(vec1);
     EXPECT_EQ(vec2.aux()->count, 1);
   }
+  EXPECT_EQ(Memory::Global().size(), 0);
   {
     auto vec = MakeShared<vector<int>>();
     // call copy construction
@@ -35,6 +37,7 @@ TEST(memory, move) {
     EXPECT_EQ(vec2.aux()->count, 2);
     EXPECT_EQ(vec.get(), nullptr);
   }
+  EXPECT_EQ(Memory::Global().size(), 0);
 }
 TEST(memory, ref_count) {
   auto vec = MakeShared<vector<int>>();

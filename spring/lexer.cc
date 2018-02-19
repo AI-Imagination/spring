@@ -68,18 +68,29 @@ std::string Token::tostring() const {
 Token TokenStream::NextToken() const {
   IgnoreSpace();
   if (cursor_ >= buffer_.size()) return Token(_T(EOB), "");
+  if (buffer_[cursor_] == '\n') return Token(_T(EOL), "", lineno_++, cursor_++);
   std::smatch match;
   // TODO improve the performance by memo
   for (int type = 1; type < Token::kNumTypes; type++) {
     auto tmp = buffer_.substr(cursor_);
     if (std::regex_search(tmp, match, Token::rule(Token::Type(type))) &&
         match.position(0) == 0) {
-      Token t(Token::Type(type), match.str(), cursor_);
+      Token t(Token::Type(type), match.str(), lineno_, cursor_);
       cursor_ += match.str().size();
       return t;
     }
   }
-  return Token(_T(ERROR), "parsing error: " + buffer_.substr(cursor_), cursor_);
+  return Token(_T(ERROR), "parsing error: " + buffer_.substr(cursor_), lineno_, cursor_);
+}
+
+std::vector<Token> TokenStream::NextLine() const {
+  std::vector<Token> res;
+  auto token = NextToken();
+  do {
+    res.push_back(std::move(token));
+    token = NextToken();
+  } while (!token.is_eob() && !token.is_eol());
+  return res;
 }
 
 std::vector<Token> TokenStream::GetTokens() const {

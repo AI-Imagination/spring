@@ -56,7 +56,8 @@ struct Token {
     AST,  // ast subtree
 
     ERROR,
-    EOB
+    EOB,
+    EOL
   };
 
   static constexpr int kNumTypes = int(Type::ERROR) - int(Type::SPACE) + 1;
@@ -69,8 +70,8 @@ struct Token {
   explicit Token(Type type) : type(type) {}
   Token(Type type, char c) : type(type), text(std::to_string(c)) {}
   Token(Type type, std::string &&text) : type(type), text(std::move(text)) {}
-  Token(Type type, std::string &&text, size_t pos)
-      : type(type), text(std::move(text)), pos(pos) {}
+  Token(Type type, std::string &&text, size_t lineno, size_t pos)
+      : type(type), text(std::move(text)), lineno(lineno), pos(pos) {}
 
   const std::string type_name() const;
   std::string tostring() const;
@@ -91,6 +92,7 @@ struct Token {
   bool is_right_brace() const { return type == _T(RB); }
   bool is_space() const { return type == _T(SPACE); }
   bool is_comma() const { return type == _T(COMMA); }
+  bool is_eol() const { return type == _T(EOL); }
 
   static const std::regex &rule(Type type) {
     return rules()[static_cast<int>(type)];
@@ -146,6 +148,7 @@ class TokenStream {
   explicit TokenStream(const std::string &buffer) : buffer_(buffer) {}
 
   Token NextToken() const;
+  std::vector<Token> NextLine() const;
 
   std::vector<Token> GetTokens() const;
 
@@ -161,6 +164,7 @@ class TokenStream {
  private:
   std::string buffer_;
   mutable size_t cursor_{0};
+  mutable size_t lineno_{0};
 };
 
 }  // namespace spring

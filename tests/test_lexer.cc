@@ -72,3 +72,15 @@ TEST(lexer, NextToken1) {
     token = ss.NextToken();
   }
 }
+
+TEST(lexer, NextLine) {
+  string buffer = "var a = 12\na = 3*2";
+  TokenStream ts(buffer);
+  auto line0 = ts.NextLine();
+  EXPECT_EQ(line0.size(), 4);
+  auto line1 = ts.NextLine();
+  EXPECT_EQ(line1.size(), 5);
+  auto line2 = ts.NextLine();
+  EXPECT_EQ(line2.size(), 1);
+  EXPECT_TRUE(line2.front().is_eob());
+}

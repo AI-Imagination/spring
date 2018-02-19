@@ -80,39 +80,59 @@ Status EatParens(node_list* list) {
   return Status();
 }
 
+Status EatPrior(node_list* list, char prior);
 Status EatPriors(node_list* list) {
+  VLOG(4) << "get list " << debug::DisplayTokenNodeList(*list);
   std::set<char> priors;
-  Visit<ast::node_ptr>(*list->head, *list->tail,
-                       [&](const SharedPtr<ast::Node>& node) {
-                         if (node->token->prior() != -1) {
-                           priors.insert(node->token->prior());
-                         }
-                       });
-
+  auto* p = list->head.get();
+  while (p) {
+    const auto& token = p->data->token;
+    if (token->prior() != -1) {
+      CHECK(!token->is_left_paren());
+      CHECK(!token->is_right_paren());
+      priors.insert(token->prior());
+    }
+    p = p->next.get();
+  }
   auto priors_sorted = std::vector<char>(priors.begin(), priors.end());
   sort(priors_sorted.begin(), priors_sorted.end());
 
-  node_list::node_ptr left_arg;
   for (char prior : priors_sorted) {
-    auto* p = list->head.get();
-    while (p) {
-      if (p->data->token->prior() == prior) {
-        // remove the triple from the original list
-        CHECK(p->next);
-        list->Remove(left_arg, p->next);
-      }
-    }
+    VLOG(4) << "processing prior " << int(prior);
+    SP_CHECK_OK(EatPrior(list, prior));
+    VLOG(4) << "list.size " << list->heavy_size();
   }
+  return Status();
 }
 
-Status EatBinaryOp(node_list* list, const node_list::node_ptr& larg) {
-  CHECK(larg->next);
-  CHECK(larg->next->next);
-  auto op = larg->next;
+Status EatPrior(node_list* list, char prior) {
+  CHECK(!list->Empty());
+  debug::ValidList(*list);
+  auto* p = list->head.get();
+  while (p) {
+    if (p->data->token->prior() == prior) {
+      p = p->pre;
+      SP_CHECK_OK(EatBinaryOp(list, p));
+      VLOG(4) << "after EatBinaryOp " << debug::DisplayTokenNodeList(*list);
+    }
+    p = p->next.get();
+  }
+  return Status();
+}
+
+Status EatBinaryOp(node_list* list, const node_list::Node* larg_raw) {
+  CHECK(larg_raw->next);
+  CHECK(larg_raw->next->next);
+  auto op = larg_raw->next;
+  auto larg = list->head == larg_raw ? list->head : larg_raw->pre->next;
   auto rarg = op->next;
-  auto* pre = larg->pre ? larg->pre : list->head.get();
+  VLOG(4) << "EatBinaryOp: " << larg->data->token->tostring() << " "
+          << op->data->token->tostring() << " "
+          << rarg->data->token->tostring();
   // remove the tripple
-  list->Remove(larg, rarg);
+  list->Remove(larg->next, rarg);
+  VLOG(4) << "EatBinaryOp: "
+          << "after remove: " << debug::DisplayTokenNodeList(*list);
   op->next.Reset();
   rarg->next.Reset();
   // the center of this tripple should be an OP
@@ -120,7 +140,7 @@ Status EatBinaryOp(node_list* list, const node_list::node_ptr& larg) {
   const_cast<Token*>(op->data->token)->SetType(_T(AST));
   op->data->left = larg->data;
   op->data->right = rarg->data;
-  list->InsertAfter(pre, op->data);
+  larg->data = op->data;
   return Status();
 }
 
@@ -135,9 +155,19 @@ Status Tokens2List(const std::vector<Token>& tokens,
   for (const auto& token : tokens) {
     if (token.is_space()) continue;
     auto node = MakeShared<ast::Node>(&token);
-    list->Append(node);
+    list->PushBack(node);
   }
   return Status();
+}
+
+std::string debug::DisplayTokenNodeList(const node_list& node) {
+  std::stringstream ss;
+  const auto* p = node.head.get();
+  while (p) {
+    ss << p->data->token->tostring();
+    p = p->next.get();
+  }
+  return ss.str();
 }
 
 }  // namespace spring

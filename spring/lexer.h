@@ -74,6 +74,10 @@ struct Token {
 
   const std::string type_name() const;
   std::string tostring() const;
+  friend std::ostream &operator<<(std::ostream &os, const Token &other) {
+    os << other.tostring();
+    return os;
+  }
 
   bool is_eob() const { return type == _T(EOB); }
   bool is_error() const { return type == _T(ERROR); }

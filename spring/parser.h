@@ -173,7 +173,11 @@ Status EatPriors(node_list *list);
  *   / \
  *  2   1
  */
-Status EatBinaryOp(node_list *list, const node_list::node_ptr &larg);
+Status EatBinaryOp(node_list *list, const node_list::Node *larg);
+
+namespace debug {
+std::string DisplayTokenNodeList(const node_list &node);
+}  // namespace debug
 
 }  // namespace spring
 #endif

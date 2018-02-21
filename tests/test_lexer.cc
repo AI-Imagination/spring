@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "spring/lexer.h"
 
 #include <glog/logging.h>
 #include <gtest/gtest.h>
@@ -45,14 +45,42 @@ TEST(lexer, SPACE) {
 }
 
 TEST(lexer, NextToken) {
-  string buffer = "var a = 12.34";
+  string buffer = "a = 12.34";
   TokenStream ss(buffer);
   auto token = ss.NextToken();
-  vector<Token::Type> types({_T(NAME), _T(NAME), _T(EQ), _T(FLOAT)});
+  vector<Token::Type> types({_T(NAME), _T(ASSIGN), _T(FLOAT)});
   int offset = 0;
   while (token.type != _T(EOB) && token.type != _T(ERROR)) {
     LOG(INFO) << token.tostring();
     EXPECT_EQ(types[offset++], token.type);
     token = ss.NextToken();
   }
+}
+
+TEST(lexer, NextToken1) {
+  string buffer = "a = _b12_221_a + (b < 13)";
+  TokenStream ss(buffer);
+  vector<Token::Type> types({_T(NAME), _T(ASSIGN), _T(NAME), _T(ADD), _T(LP),
+                             _T(NAME), _T(LT), _T(INT), _T(RP)});
+  auto token = ss.NextToken();
+
+  int offset = 0;
+  while (token.type != _T(EOB)) {
+    LOG(INFO) << offset << " " << token.tostring();
+    ASSERT_TRUE(token.type != _T(ERROR));
+    EXPECT_EQ(token.type, types[offset++]);
+    token = ss.NextToken();
+  }
+}
+
+TEST(lexer, NextLine) {
+  string buffer = "var a = 12\na = 3*2";
+  TokenStream ts(buffer);
+  auto line0 = ts.NextLine();
+  EXPECT_EQ(line0.size(), 4);
+  auto line1 = ts.NextLine();
+  EXPECT_EQ(line1.size(), 5);
+  auto line2 = ts.NextLine();
+  EXPECT_EQ(line2.size(), 1);
+  EXPECT_TRUE(line2.front().is_eob());
 }

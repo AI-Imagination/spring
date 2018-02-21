@@ -1,14 +1,18 @@
 language: cpp
 cache:
+  - pip
   - ccache
+  - yarn
+  - npm
 sudo: required
 dist: trusty
-script:
-  - gcc-5 --version 
-  - g++-5 --version 
 
 os:
   - linux
+
+env:
+  - JOB=check_style
+  - JOB=test
 
 addons:
   apt:
@@ -18,10 +22,23 @@ addons:
       - gcc-5
       - g++-5
       - git
+      - python
+      - python-pip
+      - python2.7-dev
+      - python-wheel
+      - clang-format-3.8
       - ccache
+      - npm
+      - nodejs
+
+before_install:
+  - if [[ "$JOB" == "check_style" ]]; then sudo ln -s /usr/bin/clang-format-3.8 /usr/bin/clang-format; sudo pip install pre-commit flake8; fi
 
 script:
-  /bin/bash ./tests.sh
+  - gcc-5 --version
+  - g++-5 --version
+  - if [[ "$JOB" == "check_style" ]]; then .travis/check_style.sh; fi
+  - if [[ "$JOB" == "test" ]]; then /bin/bash .travis/tests.sh; fi
 
 notifications:
   email:

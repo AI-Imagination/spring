@@ -21,9 +21,9 @@ using nidx_t = uint32_t;
  * nodes is limited, and can be stored in a vector.
  */
 struct Node {
-  Node(const Token *token) : token(token) {}
+  Node(const Token &token) : token(token) {}
 
-  const Token *token;
+  Token token;
   SharedPtr<Node> left;
   SharedPtr<Node> right;
 };
@@ -69,80 +69,11 @@ class Parser {
  public:
   Parser(const std::vector<Token> &tokens) : tokens_(tokens) {}
 
-  void operator()() {
-    node_ptr node;
-    while (token_offest_ < tokens_.size()) {
-      if (Peek().is_function()) {
-        node = EatFunctionDef();
-      } else if (Peek().is_if()) {
-        Block *new_block = Block::New();
-        EatIf();
-      } else if (Peek().is_while()) {
-        EatExpr();
-      } else {
-        node = EatStmt();
-      }
-    }
-  }
+  void operator()();
 
   const Token &Peek(int offset = 0) const {
     return tokens_[token_offest_ + offset];
   }
-
- protected:
-  void ConsumeOneToken() { token_offest_++; }
-  /*
-   * Match an expression, for example:
-   * b + 1
-   * (b+1)*2
-   * (b+1)
-   */
-  node_ptr EatExpr();
-  /*
-   * Match a statement, with ()s
-   * (a+1)
-   * a = b, c = d
-   */
-  node_ptr EatStmt();
-  /*
-   * Declare a variable, such as
-   * var a
-   * var a = 1 + 2
-   */
-  bool EatDecl();
-  /*
-   * A function declaration.
-   *
-   * function name() {
-   *   var tmp = "hello"
-   *   return tmp + " world"
-   * }
-   */
-  node_ptr EatFunctionDef();
-  /*
-   * A while-loop
-   *
-   * while(a > 0) {
-   *   a--
-   * }
-   */
-  node_ptr EatWhile();
-  /*
-   * If statement.
-   *
-   * if (a > 0) {
-   *   ...
-   * } else {
-   *   ...
-   * }
-   */
-  node_ptr EatIf();
-
-  bool EatLeftParen() const;
-  bool EatRightParen() const;
-  bool EatBinaryOp() const;
-  bool EatLeftBrace() const;
-  bool EatRightBrace() const;
 
  private:
   const std::vector<Token> &tokens_;
@@ -152,7 +83,45 @@ class Parser {
 
 using node_list = List<node_ptr>;
 
-Status Tokens2List(const std::vector<Token> &tokens, List<ast::node_ptr> *list);
+/*
+ * Tell whether the preceding tokens is a function call.
+ *
+ * Such as
+ * a = getName("candy")
+ */
+bool PrecedFunctionCall(const List<ast::node_ptr> &list);
+
+/*
+ * Tell whether the preceding tokens is a function definition.
+ *
+ * Such as
+ *   function getName(name)
+ */
+bool PrecedFunctionDef(const List<ast::node_ptr> &list);
+
+/*
+ * Tell whether the preceding tokens is a if.
+ *
+ * Such as
+ *   if (a > 10)
+ */
+bool PrecedIf(const List<ast::node_ptr> &list);
+
+/*
+ * Tell whether the preceding tokens is a while.
+ *
+ * Such as
+ *    while (a > 10)
+ */
+bool PrecedWhile(const List<ast::node_ptr> &list);
+
+/*
+ * Tell whether the preceding tokens define an variable.
+ *
+ * Such as
+ *    var a = 100
+ */
+bool PrecedVarDef(const List<ast::node_ptr> &list);
 
 /*
  * Parse and clear the contents within the parentheses, generate ASTs and insert
@@ -174,6 +143,21 @@ Status EatPriors(node_list *list);
  *  2   1
  */
 Status EatBinaryOp(node_list *list, const node_list::Node *larg);
+
+Status EatFunctionCalls(node_list *list);
+
+Status EatFunctionCall(node_list *list, const node_list::Node *n);
+
+Status EatFunctionDef(TokenStream &ts);
+
+Status EatIf(TokenStream &ts);
+
+Status EatWhile(TokenStream &ts);
+
+/*
+ * Create a list according to the input tokens.
+ */
+Status Tokens2List(const std::vector<Token> &tokens, List<ast::node_ptr> *list);
 
 namespace debug {
 std::string DisplayTokenNodeList(const node_list &node);

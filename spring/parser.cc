@@ -4,6 +4,8 @@
 
 namespace spring {
 
+void Parser::operator()() {}
+
 /*
  * Parse a normal expression.
  * There are several patterns:
@@ -47,15 +49,15 @@ Status EatParens(node_list* list) {
   auto* p = list->head.get();
   std::vector<int> stack;
   while (p) {
-    if (p->data->token->is_left_paren()) {
+    if (p->data->token.is_left_paren()) {
       node_list::Node* lp = p;
       node_list::Node* rp = p;
       // find right parentheses
       stack.clear();
       while (p) {
-        if (p->data->token->is_left_paren())
+        if (p->data->token.is_left_paren())
           stack.push_back(LP);
-        else if (p->data->token->is_right_paren()) {
+        else if (p->data->token.is_right_paren()) {
           CHECK(!stack.empty());
           CHECK_EQ(stack.back(), LP);
           stack.pop_back();
@@ -87,10 +89,10 @@ Status EatPriors(node_list* list) {
   auto* p = list->head.get();
   while (p) {
     const auto& token = p->data->token;
-    if (token->prior() != -1) {
-      CHECK(!token->is_left_paren());
-      CHECK(!token->is_right_paren());
-      priors.insert(token->prior());
+    if (token.prior() != -1) {
+      CHECK(!token.is_left_paren());
+      CHECK(!token.is_right_paren());
+      priors.insert(token.prior());
     }
     p = p->next.get();
   }
@@ -110,7 +112,7 @@ Status EatPrior(node_list* list, char prior) {
   debug::ValidList(*list);
   auto* p = list->head.get();
   while (p) {
-    if (p->data->token->prior() == prior) {
+    if (p->data->token.prior() == prior) {
       p = p->pre;
       SP_CHECK_OK(EatBinaryOp(list, p));
       VLOG(4) << "after EatBinaryOp " << debug::DisplayTokenNodeList(*list);
@@ -126,9 +128,8 @@ Status EatBinaryOp(node_list* list, const node_list::Node* larg_raw) {
   auto op = larg_raw->next;
   auto larg = list->head == larg_raw ? list->head : larg_raw->pre->next;
   auto rarg = op->next;
-  VLOG(4) << "EatBinaryOp: " << larg->data->token->tostring() << " "
-          << op->data->token->tostring() << " "
-          << rarg->data->token->tostring();
+  VLOG(4) << "EatBinaryOp: " << larg->data->token.tostring() << " "
+          << op->data->token.tostring() << " " << rarg->data->token.tostring();
   // remove the tripple
   list->Remove(larg->next, rarg);
   VLOG(4) << "EatBinaryOp: "
@@ -136,17 +137,12 @@ Status EatBinaryOp(node_list* list, const node_list::Node* larg_raw) {
   op->next.Reset();
   rarg->next.Reset();
   // the center of this tripple should be an OP
-  CHECK_NE(op->data->token->prior(), -1);
-  const_cast<Token*>(op->data->token)->SetType(_T(AST));
+  CHECK_NE(op->data->token.prior(), -1);
+  op->data->token.SetType(_T(AST));
   op->data->left = larg->data;
   op->data->right = rarg->data;
   larg->data = op->data;
   return Status();
-}
-
-node_ptr Parser::EatExpr() {
-  // keep scanning the highest priority operators.
-  return spring::node_ptr();
 }
 
 Status Tokens2List(const std::vector<Token>& tokens,
@@ -154,7 +150,7 @@ Status Tokens2List(const std::vector<Token>& tokens,
   // skip space
   for (const auto& token : tokens) {
     if (token.is_space()) continue;
-    auto node = MakeShared<ast::Node>(&token);
+    auto node = MakeShared<ast::Node>(token);
     list->PushBack(node);
   }
   return Status();
@@ -164,7 +160,7 @@ std::string debug::DisplayTokenNodeList(const node_list& node) {
   std::stringstream ss;
   const auto* p = node.head.get();
   while (p) {
-    ss << p->data->token->tostring();
+    ss << p->data->token.tostring();
     p = p->next.get();
   }
   return ss.str();

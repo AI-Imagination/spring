@@ -80,7 +80,8 @@ Token TokenStream::NextToken() const {
       return t;
     }
   }
-  return Token(_T(ERROR), "parsing error: " + buffer_.substr(cursor_), lineno_, cursor_);
+  return Token(_T(ERROR), "parsing error: " + buffer_.substr(cursor_), lineno_,
+               cursor_);
 }
 
 std::vector<Token> TokenStream::NextLine() const {

@@ -35,18 +35,18 @@ TEST_F(ParserTester, EatBinaryOp) {
     p = p->next;
   }
   LOG(INFO) << "memory: " << Memory::Global().size();
-  LOG(INFO) << "stop at " << p->data->token->tostring();
+  LOG(INFO) << "stop at " << p->data->token.tostring();
   auto status = EatBinaryOp(&list, p.get());
 
   LOG(INFO) << "after eat binary op: " << debug::DisplayTokenNodeList(list);
 
   ASSERT_TRUE(status.ok());
   auto ast = pre->next->data;
-  LOG(INFO) << "ast: " << ast->token->tostring();
-  EXPECT_EQ(ast->token->type, _T(AST));
-  EXPECT_EQ(ast->token->text, "+");
-  EXPECT_EQ(ast->left->token->text, "3");
-  EXPECT_EQ(ast->right->token->text, "2");
+  LOG(INFO) << "ast: " << ast->token.tostring();
+  EXPECT_EQ(ast->token.type, _T(AST));
+  EXPECT_EQ(ast->token.text, "+");
+  EXPECT_EQ(ast->left->token.text, "3");
+  EXPECT_EQ(ast->right->token.text, "2");
   debug::ValidList(list);
 }
 TEST(Parser, EatBinaryOp_head) {
@@ -61,7 +61,7 @@ TEST(Parser, EatBinaryOp_head) {
     auto status = Tokens2List(tokens, &list);
     status = EatBinaryOp(&list, list.head.get());
     ASSERT_TRUE(status.ok());
-    EXPECT_EQ(list.head->data->token->type, _T(AST));
+    EXPECT_EQ(list.head->data->token.type, _T(AST));
     LOG(INFO) << "after EatBinaryOp " << debug::DisplayTokenNodeList(list);
   }
   ASSERT_EQ(Memory::Global().size(), 0);
